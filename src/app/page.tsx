@@ -11,7 +11,7 @@ export default function Home() {
       <div className="relative w-full h-full max-w-[calc(100vh*1671/941)] max-h-[calc(100vw*941/1671)] aspect-[1671/941] shadow-2xl">
         {/* Arte institucional completa com alta fidelidade */}
         <Image
-          src="/img/bg_pesquisa.png"
+          src="/img/bg_pesquisaok.png"
           alt="Pesquisa Institucional COMIEADEPA"
           fill
           priority
