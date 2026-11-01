@@ -23,4 +23,39 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* Landscape em dispositivos com altura reduzida (smartphones e tablets estreitos na horizontal) */
+@media (orientation: landscape) and (max-height: 550px) {
+  .landscape-compact-py {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+  }
+  .landscape-compact-card {
+    padding: 0.85rem !important;
+    gap: 0.6rem !important;
+  }
+  .landscape-compact-header {
+    margin-bottom: 0 !important;
+  }
+  .landscape-compact-option {
+    min-height: 54px !important;
+    padding: 0.4rem 0.6rem !important;
+    flex-direction: row !important;
+    gap: 0.5rem !important;
+  }
+  .landscape-compact-icon {
+    width: 26px !important;
+    height: 26px !important;
+  }
+  .landscape-compact-text {
+    font-size: 13px !important;
+    text-align: left !important;
+    line-height: 1.2 !important;
+  }
 }

@@ -39,8 +39,8 @@ import {
  * Função inteligente para associar ícones semânticos com proporções responsivas via clamp().
  */
 function getSemanticOptionIcon(questionId: number, value: string, isSelected: boolean) {
-  const iconClass = `w-[38px] h-[38px] sm:w-[46px] sm:h-[46px] md:w-[52px] md:h-[52px] lg:w-[58px] lg:h-[58px] transition-transform ${
-    isSelected ? "text-white scale-105 drop-shadow-md" : ""
+  const iconClass = `w-[38px] h-[38px] sm:w-[46px] sm:h-[46px] md:w-[52px] md:h-[52px] lg:w-[58px] lg:h-[58px] landscape-compact-icon transition-transform ${
+    isSelected ? "text-white drop-shadow-md" : ""
   }`;
 
   if (isSelected) {
@@ -57,6 +57,7 @@ function getSemanticOptionIcon(questionId: number, value: string, isSelected: bo
       return <Meh className={`${iconClass} text-[#C79C3B] stroke-[2]`} />;
     case "insatisfatoria":
     case "insatisfatorio":
+    case "ruim":
       return <ThumbsDown className={`${iconClass} text-[#F64F6A] stroke-[2]`} />;
     case "nao_tenho_condicoes":
       return <HelpCircle className={`${iconClass} text-[#717179] stroke-[2]`} />;
@@ -228,33 +229,33 @@ export default function PesquisaPage() {
   const is5Options = optionCount === 5;
 
   return (
-    <main className="relative w-full min-h-screen bg-[#591013] flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 overflow-x-hidden select-none">
+    <main className="relative w-full min-h-screen min-h-[100dvh] bg-[#591013] flex flex-col items-center justify-center p-3 sm:p-5 md:p-8 landscape-compact-py overflow-x-hidden overflow-y-auto select-none">
       {/* 
         CARD PRINCIPAL RESPONSIVO:
-        - Fundo sólido do container (#591013) substitui a imagem anterior.
-        - Largura: min(1380px, calc(100% - 32px))
+        - Fundo sólido do container (#591013) com margens visíveis.
+        - Largura: min(1380px, calc(100% - 24px))
         - Altura: adaptável ao conteúdo sem overflow oculto forçado
-        - Padding: responsivo (16px em mobile, 20px em tablet, 28px em desktop)
+        - Suporte total a landscape compacto via media queries.
       */}
-      <div className="relative z-10 w-full flex justify-center py-2 sm:py-4">
+      <div className="relative z-10 w-full flex justify-center py-1 sm:py-3">
         <section 
-          className="relative w-full bg-[#FFF9F0] border-[3px] sm:border-[4px] border-[#D8BC86] rounded-[24px] sm:rounded-[30px] shadow-[0_20px_45px_-8px_rgba(30,5,8,0.45)] p-4 sm:p-6 md:p-7 flex flex-col gap-y-4 sm:gap-y-5"
+          className="relative w-full bg-[#FFF9F0] border-[3px] sm:border-[4px] border-[#D8BC86] rounded-[20px] sm:rounded-[30px] shadow-[0_20px_45px_-8px_rgba(30,5,8,0.45)] p-3.5 sm:p-6 md:p-7 landscape-compact-card flex flex-col gap-y-3 sm:gap-y-4 md:gap-y-5"
           style={{
-            width: "min(1380px, calc(100% - 32px))",
+            width: "min(1380px, calc(100% - 24px))",
             minHeight: "auto",
           }}
         >
           {/* 1. CABEÇALHO INTERNO */}
-          <div className="w-full shrink-0 flex flex-col gap-2.5">
+          <div className="w-full shrink-0 flex flex-col gap-2 landscape-compact-header">
             <div className="flex flex-wrap items-center justify-between gap-2">
               {/* Selo 'Pergunta' */}
               <div 
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#800020] via-[#750215] to-[#590410] border border-[#C79C3B]/60 text-white shadow-md shadow-[#800020]/25 px-4 py-2 shrink-0 h-[38px] sm:h-[44px]"
+                className="inline-flex items-center justify-center gap-1.5 sm:gap-2 rounded-full bg-gradient-to-r from-[#800020] via-[#750215] to-[#590410] border border-[#C79C3B]/60 text-white shadow-md shadow-[#800020]/25 px-3 sm:px-4 py-1.5 sm:py-2 shrink-0 h-[34px] sm:h-[44px]"
               >
-                <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-xs font-black">
+                <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-white/20 flex items-center justify-center text-[10px] sm:text-xs font-black">
                   ?
                 </div>
-                <span className="text-xs sm:text-sm md:text-base font-black tracking-wide">
+                <span className="text-[11px] sm:text-sm md:text-base font-black tracking-wide">
                   Pergunta
                 </span>
               </div>
@@ -264,14 +265,14 @@ export default function PesquisaPage() {
                 <span className="hidden sm:inline text-[#8C6D47] uppercase font-bold text-xs tracking-wider">
                   {currentQuestion.category} •
                 </span>
-                <span className="bg-[#F5EAD7] px-3.5 py-1 rounded-full border border-[#DDC295] text-xs sm:text-sm font-black shadow-inner">
+                <span className="bg-[#F5EAD7] px-3 py-1 rounded-full border border-[#DDC295] text-[11px] sm:text-sm font-black shadow-inner">
                   Pergunta {currentIndex + 1} de {totalQuestions}
                 </span>
               </div>
             </div>
 
             {/* Barra de progresso */}
-            <div className="w-full bg-[#E8DAC2] h-[8px] rounded-full overflow-hidden p-[1px] shadow-inner">
+            <div className="w-full bg-[#E8DAC2] h-[6px] sm:h-[8px] rounded-full overflow-hidden p-[1px] shadow-inner">
               <div
                 className="bg-gradient-to-r from-[#800020] via-[#9E0F2D] to-[#6E0A1E] h-full rounded-full transition-all duration-300 ease-out"
                 style={{ width: `${progressPercentage}%` }}
@@ -280,17 +281,17 @@ export default function PesquisaPage() {
           </div>
 
           {/* 2. ENUNCIADO DA PERGUNTA (QUEBRA NATURAL SEM CORTES) */}
-          <div className="w-full pt-1 sm:pt-2">
-            <div className="flex items-start gap-3 sm:gap-4 md:gap-5 w-full">
+          <div className="w-full pt-0.5 sm:pt-1">
+            <div className="flex items-start gap-2.5 sm:gap-4 md:gap-5 w-full">
               {/* Linha vertical dourada */}
               <div 
-                className="w-[5px] sm:w-[6px] bg-gradient-to-b from-[#E5B533] via-[#DCA326] to-[#C78F1A] rounded-full shrink-0 shadow-sm self-stretch min-h-[44px]"
+                className="w-[4px] sm:w-[6px] bg-gradient-to-b from-[#E5B533] via-[#DCA326] to-[#C78F1A] rounded-full shrink-0 shadow-sm self-stretch min-h-[36px]"
               />
               
               {/* Texto com tipografia fluida via clamp() */}
               <h2 
                 className="font-extrabold text-[#800020] leading-snug sm:leading-snug tracking-tight text-left break-words w-full"
-                style={{ fontSize: "clamp(18px, 2.2vw, 32px)", fontWeight: 800 }}
+                style={{ fontSize: "clamp(16px, 2.1vw, 32px)", fontWeight: 800 }}
               >
                 {currentQuestion.title}
               </h2>
@@ -298,14 +299,14 @@ export default function PesquisaPage() {
           </div>
 
           {/* 3. INSTRUÇÃO CENTRALIZADA (CÁPSULA) */}
-          <div className="w-full flex items-center justify-center py-1">
+          <div className="w-full flex items-center justify-center py-0.5 sm:py-1">
             <div 
-              className="inline-flex items-center justify-center gap-2 px-5 sm:px-7 py-1.5 sm:py-2 rounded-full bg-[#F5EAD7] border border-[#DFC392] shadow-sm text-[#800020] text-center"
+              className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-4 sm:px-7 py-1 sm:py-2 rounded-full bg-[#F5EAD7] border border-[#DFC392] shadow-sm text-[#800020] text-center"
             >
-              <Pointer className="w-4 h-4 sm:w-5 sm:h-5 text-[#800020] animate-bounce shrink-0" />
+              <Pointer className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-[#800020] animate-bounce shrink-0" />
               <span 
                 className="font-bold tracking-wide"
-                style={{ fontSize: "clamp(13px, 1.4vw, 20px)", fontWeight: 700 }}
+                style={{ fontSize: "clamp(12px, 1.3vw, 19px)", fontWeight: 700 }}
               >
                 Selecione uma opção abaixo:
               </span>
@@ -317,12 +318,12 @@ export default function PesquisaPage() {
             - 5 Colunas em telas largas (>= 1180px)
             - 3 Colunas em tablets médios / landscape estreito (768px a 1179px)
             - 2 Colunas em tablets portrait (540px a 767px)
-            - 1 Coluna em smartphones (< 540px)
+            - 1 Coluna em smartphones portrait (< 540px)
           */}
           <div className="w-full flex flex-col justify-center my-auto py-1">
             {is5Options ? (
               <div 
-                className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-3.5 w-full items-stretch"
+                className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-2.5 sm:gap-3.5 w-full items-stretch"
               >
                 {currentQuestion.options.map((opt) => {
                   const isSelected = currentAnswer === opt.value;
@@ -331,13 +332,13 @@ export default function PesquisaPage() {
                       key={opt.value}
                       type="button"
                       onClick={() => handleSelectOption(opt.value)}
-                      className={`w-full flex flex-row xs:flex-col items-center justify-center gap-3 xs:gap-2 sm:gap-3 p-3.5 sm:p-4 rounded-[20px] sm:rounded-[24px] border-2 transition-all duration-200 cursor-pointer text-center relative ${
+                      className={`w-full flex flex-row xs:flex-col items-center justify-center gap-2.5 xs:gap-2 sm:gap-3 p-3 sm:p-4 rounded-[18px] sm:rounded-[24px] border-2 transition-all duration-150 cursor-pointer text-center relative landscape-compact-option ${
                         isSelected
-                          ? "bg-gradient-to-b from-[#800020] via-[#6E0A1E] to-[#4D020D] border-[#E5B533] border-[3px] sm:border-[4px] text-white shadow-xl shadow-[#800020]/35 scale-[1.01] sm:scale-[1.02] z-10"
+                          ? "bg-gradient-to-b from-[#800020] via-[#6E0A1E] to-[#4D020D] border-[#E5B533] border-[3px] sm:border-[4px] text-white shadow-xl shadow-[#800020]/35 z-10"
                           : "bg-[#FFFFFF] border-[#E8D4B0] text-[#1A0307] hover:border-[#DCA326] hover:bg-[#FFFDF9] hover:shadow-lg shadow-sm"
                       }`}
                       style={{
-                        minHeight: "clamp(70px, 15vw, 190px)",
+                        minHeight: "clamp(60px, 14vw, 180px)",
                       }}
                     >
                       {/* Ícone */}
@@ -347,10 +348,10 @@ export default function PesquisaPage() {
 
                       {/* Texto */}
                       <span
-                        className={`leading-snug sm:leading-tight tracking-tight font-bold text-left xs:text-center ${
+                        className={`leading-snug sm:leading-tight tracking-tight font-bold text-left xs:text-center landscape-compact-text ${
                           isSelected ? "text-white" : "text-[#1A0307]"
                         }`}
-                        style={{ fontSize: "clamp(13px, 1.35vw, 20px)", fontWeight: 700 }}
+                        style={{ fontSize: "clamp(13px, 1.3vw, 20px)", fontWeight: 700 }}
                       >
                         {opt.label}
                       </span>
@@ -360,7 +361,7 @@ export default function PesquisaPage() {
               </div>
             ) : (
               /* Grade adaptável para 6 alternativas (Q8 e Q9) */
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-3.5 w-full items-stretch">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3.5 w-full items-stretch">
                 {currentQuestion.options.map((opt) => {
                   const isSelected = currentAnswer === opt.value;
                   return (
@@ -368,19 +369,19 @@ export default function PesquisaPage() {
                       key={opt.value}
                       type="button"
                       onClick={() => handleSelectOption(opt.value)}
-                      className={`w-full flex items-center gap-3 p-3.5 sm:p-4 rounded-[20px] sm:rounded-[24px] border-2 transition-all duration-200 cursor-pointer text-left ${
+                      className={`w-full flex items-center gap-2.5 sm:gap-3 p-3 sm:p-4 rounded-[18px] sm:rounded-[24px] border-2 transition-all duration-150 cursor-pointer text-left landscape-compact-option ${
                         isSelected
-                          ? "bg-gradient-to-r from-[#800020] via-[#6E0A1E] to-[#4D020D] border-[#E5B533] border-[3px] sm:border-[4px] text-white shadow-xl shadow-[#800020]/35 scale-[1.01] z-10"
+                          ? "bg-gradient-to-r from-[#800020] via-[#6E0A1E] to-[#4D020D] border-[#E5B533] border-[3px] sm:border-[4px] text-white shadow-xl shadow-[#800020]/35 z-10"
                           : "bg-[#FFFFFF] border-[#E8D4B0] text-[#1A0307] hover:border-[#DCA326] hover:bg-[#FFFDF9] hover:shadow-md shadow-sm"
                       }`}
-                      style={{ minHeight: "clamp(70px, 10vw, 110px)" }}
+                      style={{ minHeight: "clamp(58px, 9vw, 105px)" }}
                     >
                       <div className="shrink-0 flex items-center justify-center">
                         {getSemanticOptionIcon(currentQuestion.id, opt.value, isSelected)}
                       </div>
 
                       <span
-                        className={`leading-snug font-bold ${
+                        className={`leading-snug font-bold landscape-compact-text ${
                           isSelected ? "text-white" : "text-[#1A0307]"
                         }`}
                         style={{ fontSize: "clamp(13px, 1.25vw, 17px)", fontWeight: 700 }}
@@ -395,13 +396,13 @@ export default function PesquisaPage() {
           </div>
 
           {/* 5. NAVEGAÇÃO INFERIOR */}
-          <div className="w-full shrink-0 pt-3 sm:pt-4 border-t border-[#E5CCA0]/80">
+          <div className="w-full shrink-0 pt-2.5 sm:pt-4 border-t border-[#E5CCA0]/80">
             <footer className="flex flex-wrap items-center justify-between gap-3">
               {currentIndex > 0 ? (
                 <button
                   type="button"
                   onClick={handlePrev}
-                  className="flex items-center justify-center gap-2 rounded-2xl border-2 border-[#800020] text-[#800020] hover:bg-[#F5EAD7] font-bold transition-colors cursor-pointer shadow-sm px-5 sm:px-7 py-2.5 sm:py-3 text-sm sm:text-base min-w-[130px] sm:min-w-[160px] h-[46px] sm:h-[54px]"
+                  className="flex items-center justify-center gap-2 rounded-2xl border-2 border-[#800020] text-[#800020] hover:bg-[#F5EAD7] font-bold transition-colors cursor-pointer shadow-sm px-5 sm:px-7 py-2.5 sm:py-3 text-sm sm:text-base min-w-[120px] sm:min-w-[160px] h-[44px] sm:h-[54px]"
                 >
                   <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 text-[#800020]" />
                   <span>Anterior</span>
@@ -409,7 +410,7 @@ export default function PesquisaPage() {
               ) : (
                 <Link
                   href="/"
-                  className="flex items-center justify-center gap-2 rounded-2xl border-2 border-[#DFC392] text-[#800020] hover:bg-[#F5EAD7] font-bold transition-colors shadow-sm px-5 sm:px-7 py-2.5 sm:py-3 text-sm sm:text-base min-w-[130px] sm:min-w-[160px] h-[46px] sm:h-[54px]"
+                  className="flex items-center justify-center gap-2 rounded-2xl border-2 border-[#DFC392] text-[#800020] hover:bg-[#F5EAD7] font-bold transition-colors shadow-sm px-5 sm:px-7 py-2.5 sm:py-3 text-sm sm:text-base min-w-[120px] sm:min-w-[160px] h-[44px] sm:h-[54px]"
                 >
                   <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 text-[#800020]" />
                   <span>Início</span>
@@ -420,7 +421,7 @@ export default function PesquisaPage() {
                 type="button"
                 onClick={handleNext}
                 disabled={!currentAnswer || isSubmitting}
-                className={`flex items-center justify-center gap-2 rounded-2xl font-bold transition-all cursor-pointer shadow-lg px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base min-w-[140px] sm:min-w-[170px] h-[46px] sm:h-[54px] ${
+                className={`flex items-center justify-center gap-2 rounded-2xl font-bold transition-all cursor-pointer shadow-lg px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base min-w-[130px] sm:min-w-[170px] h-[44px] sm:h-[54px] ${
                   !currentAnswer || isSubmitting
                     ? "bg-[#D8C7B2]/70 text-[#9E8B78] border border-[#C5B39E] cursor-not-allowed shadow-none"
                     : "bg-gradient-to-r from-[#800020] via-[#750215] to-[#54040E] hover:from-[#9D0F2D] hover:to-[#6E0A1E] text-white shadow-[#800020]/35 active:scale-[0.98] border border-[#E5B533]/40"
