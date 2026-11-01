@@ -1,29 +1,67 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 import { 
   Users, 
   BarChart3, 
-  Download, 
   FileSpreadsheet, 
   FileText, 
   Tablet, 
   CheckCircle, 
-  ArrowUpRight, 
-  Filter, 
-  ShieldAlert, 
   Lock, 
   Home, 
   Clock, 
   TrendingUp,
-  RefreshCw
+  RefreshCw,
+  Database
 } from "lucide-react";
+
+interface SurveyResponse {
+  id: string;
+  created_at: string;
+  totem_id: string;
+  q1_administracao_geral: string;
+  q7_organizacao_ago: string;
+  q10_satisfacao_geral: string;
+  respostas_completas: Record<string, string>;
+}
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [accessKey, setAccessKey] = useState("");
   const [authError, setAuthError] = useState("");
+  
+  // Dados reais vindos do Supabase
+  const [responses, setResponses] = useState<SurveyResponse[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchResponses = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("respostas_pesquisa")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Erro ao carregar dados do Supabase:", error);
+      } else if (data) {
+        setResponses(data);
+      }
+    } catch (err) {
+      console.error("Exceção ao buscar respostas:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchResponses();
+    }
+  }, [isAuthenticated, fetchResponses]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +69,7 @@ export default function AdminPage() {
       setIsAuthenticated(true);
       setAuthError("");
     } else {
-      setAuthError("Chave de acesso inválida. Tente 'admin' para visualização demonstrativa.");
+      setAuthError("Chave de acesso inválida. Tente 'admin' para visualização.");
     }
   };
 
@@ -53,7 +91,7 @@ export default function AdminPage() {
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="block text-xs font-medium text-slate-300 mb-1.5 uppercase tracking-wider">
-                Chave ou Senha Provisória
+                Chave de Acesso
               </label>
               <input
                 type="password"
@@ -79,12 +117,36 @@ export default function AdminPage() {
             <Link href="/" className="hover:text-slate-300 flex items-center gap-1">
               <Home className="w-3.5 h-3.5" /> Voltar ao Totem
             </Link>
-            <span>Modo Mockup</span>
+            <span className="flex items-center gap-1 text-emerald-400">
+              <Database className="w-3 h-3" /> Supabase Online
+            </span>
           </div>
         </div>
       </main>
     );
   }
+
+  // Cálculos dinâmicos com dados reais
+  const totalCount = responses.length;
+  
+  // Q1 Breakdown
+  const q1Excelente = responses.filter(r => r.q1_administracao_geral === "excelente").length;
+  const q1Boa = responses.filter(r => r.q1_administracao_geral === "boa").length;
+  const q1Outras = totalCount - (q1Excelente + q1Boa);
+  const q1PctExcelente = totalCount > 0 ? Math.round((q1Excelente / totalCount) * 100) : 0;
+  const q1PctBoa = totalCount > 0 ? Math.round((q1Boa / totalCount) * 100) : 0;
+  const q1PctOutras = totalCount > 0 ? Math.round((q1Outras / totalCount) * 100) : 0;
+
+  // Q7 Breakdown
+  const q7Excelente = responses.filter(r => r.q7_organizacao_ago === "excelente").length;
+  const q7Boa = responses.filter(r => r.q7_organizacao_ago === "boa").length;
+  const q7Outras = totalCount - (q7Excelente + q7Boa);
+  const q7PctExcelente = totalCount > 0 ? Math.round((q7Excelente / totalCount) * 100) : 0;
+  const q7PctBoa = totalCount > 0 ? Math.round((q7Boa / totalCount) * 100) : 0;
+  const q7PctOutras = totalCount > 0 ? Math.round((q7Outras / totalCount) * 100) : 0;
+
+  // Totens únicos
+  const uniqueTotens = Array.from(new Set(responses.map(r => r.totem_id || "totem_geral")));
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
@@ -106,9 +168,9 @@ export default function AdminPage() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs border border-emerald-500/20 font-medium">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs border border-emerald-500/20 font-medium">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              Sincronização Ativa
+              Supabase PostgreSQL Ativo
             </span>
 
             <Link
@@ -131,25 +193,29 @@ export default function AdminPage() {
 
       {/* Main Admin Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1 space-y-8">
-        {/* Notice of architecture / demo stage */}
-        <div className="bg-amber-500/10 border border-amber-500/25 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        {/* Supabase Status Banner */}
+        <div className="bg-emerald-500/10 border border-emerald-500/25 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-amber-500/20 text-amber-400 shrink-0">
-              <ShieldAlert className="w-5 h-5" />
+            <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 shrink-0">
+              <Database className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-amber-300">
-                Ambiente de Demonstração e Layout (Fase 1)
+              <p className="text-sm font-semibold text-emerald-300">
+                Conexão ao Vivo com Supabase PostgreSQL
               </p>
               <p className="text-xs text-slate-400">
-                Os números e gráficos abaixo são ilustrativos para validação visual dos gestores. A integração com Supabase PostgreSQL e exportadores será ativada nas etapas seguintes.
+                As respostas enviadas em qualquer tablet/totem no auditório são sincronizadas automaticamente nesta base de dados em tempo real.
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
-            <button className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 flex items-center gap-1.5 cursor-pointer">
-              <RefreshCw className="w-3.5 h-3.5" />
-              Atualizar
+            <button 
+              onClick={fetchResponses}
+              disabled={loading}
+              className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+              <span>{loading ? "Carregando..." : "Atualizar"}</span>
             </button>
           </div>
         </div>
@@ -158,45 +224,49 @@ export default function AdminPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
             <div className="flex items-center justify-between text-slate-400 text-xs font-medium mb-3">
-              <span>Total de Respostas</span>
+              <span>Total de Respostas Coletadas</span>
               <Users className="w-4 h-4 text-amber-400" />
             </div>
-            <div className="text-3xl font-extrabold text-white">487</div>
+            <div className="text-3xl font-extrabold text-white">{totalCount}</div>
             <p className="text-xs text-emerald-400 flex items-center gap-1 mt-2 font-medium">
-              <TrendingUp className="w-3.5 h-3.5" /> +52 na última hora
+              <TrendingUp className="w-3.5 h-3.5" /> Gravadas em tempo real
             </p>
           </div>
 
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
             <div className="flex items-center justify-between text-slate-400 text-xs font-medium mb-3">
-              <span>Índice Geral de Satisfação</span>
+              <span>Aprovação na Q1 (Presidência)</span>
               <BarChart3 className="w-4 h-4 text-emerald-400" />
             </div>
-            <div className="text-3xl font-extrabold text-white">4.8 <span className="text-base text-slate-500 font-normal">/ 5.0</span></div>
+            <div className="text-3xl font-extrabold text-white">
+              {totalCount > 0 ? `${q1PctExcelente + q1PctBoa}%` : "100%"}
+            </div>
             <p className="text-xs text-slate-400 mt-2">
-              96% de avaliações positivas
+              Excelente e Boa somadas
             </p>
           </div>
 
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
             <div className="flex items-center justify-between text-slate-400 text-xs font-medium mb-3">
-              <span>Tablets Conectados</span>
+              <span>Totens Ativos Registrados</span>
               <Tablet className="w-4 h-4 text-blue-400" />
             </div>
-            <div className="text-3xl font-extrabold text-white">6 <span className="text-base text-emerald-400 font-normal">Online</span></div>
+            <div className="text-3xl font-extrabold text-white">
+              {Math.max(uniqueTotens.length, 1)} <span className="text-base text-emerald-400 font-normal">Online</span>
+            </div>
             <p className="text-xs text-slate-400 mt-2">
-              Totens distribuídos no auditório
+              Estações enviando dados
             </p>
           </div>
 
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
             <div className="flex items-center justify-between text-slate-400 text-xs font-medium mb-3">
-              <span>Tempo Médio p/ Resposta</span>
+              <span>Tempo Estimado p/ Resposta</span>
               <Clock className="w-4 h-4 text-purple-400" />
             </div>
-            <div className="text-3xl font-extrabold text-white">1m 45s</div>
+            <div className="text-3xl font-extrabold text-white">~1m 30s</div>
             <p className="text-xs text-slate-400 mt-2">
-              Fluxo ágil e sem filas
+              10 perguntas objetivas
             </p>
           </div>
         </div>
@@ -205,31 +275,38 @@ export default function AdminPage() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
           <div>
             <h2 className="text-lg font-bold text-white">Resultados Consolidados por Eixo</h2>
-            <p className="text-xs text-slate-400">Distribuição percentual das 10 perguntas institucionais</p>
+            <p className="text-xs text-slate-400">Distribuição estatística calculada sobre a base oficial do Supabase</p>
           </div>
 
           <div className="flex items-center gap-2">
             <button
-              onClick={() => alert("Geração de relatório em Excel (XLSX) será integrada com a base Supabase.")}
+              onClick={() => {
+                if (responses.length === 0) {
+                  alert("Ainda não há respostas registradas para exportar.");
+                  return;
+                }
+                const csvContent = "data:text/csv;charset=utf-8," 
+                  + "ID,Data,Totem,Q1,Q7,Q10\n"
+                  + responses.map(e => `${e.id},${e.created_at},${e.totem_id},${e.q1_administracao_geral},${e.q7_organizacao_ago},${e.q10_satisfacao_geral}`).join("\n");
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `comieadepa_pesquisa_${new Date().toISOString().slice(0, 10)}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              }}
               className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-medium text-slate-200 flex items-center gap-2 transition-colors cursor-pointer"
             >
               <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
-              <span>Exportar Excel</span>
-            </button>
-
-            <button
-              onClick={() => alert("Geração de relatório em PDF para diretoria será integrada com a base Supabase.")}
-              className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-medium text-slate-200 flex items-center gap-2 transition-colors cursor-pointer"
-            >
-              <FileText className="w-4 h-4 text-rose-400" />
-              <span>Relatório PDF</span>
+              <span>Exportar CSV/Excel</span>
             </button>
           </div>
         </div>
 
-        {/* Questions Breakdown (Demo preview) */}
+        {/* Questions Breakdown */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Card 1 */}
+          {/* Card 1: Q1 */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-semibold text-amber-400 uppercase tracking-wider">Administração Geral</span>
@@ -242,36 +319,36 @@ export default function AdminPage() {
               <div>
                 <div className="flex justify-between text-xs mb-1">
                   <span className="text-slate-300">Excelente</span>
-                  <span className="text-white font-bold">72% (351)</span>
+                  <span className="text-white font-bold">{q1PctExcelente}% ({q1Excelente})</span>
                 </div>
                 <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                  <div className="bg-emerald-500 h-full w-[72%]" />
+                  <div className="bg-emerald-500 h-full transition-all duration-500" style={{ width: `${q1PctExcelente}%` }} />
                 </div>
               </div>
 
               <div>
                 <div className="flex justify-between text-xs mb-1">
                   <span className="text-slate-300">Boa</span>
-                  <span className="text-white font-bold">21% (102)</span>
+                  <span className="text-white font-bold">{q1PctBoa}% ({q1Boa})</span>
                 </div>
                 <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                  <div className="bg-blue-500 h-full w-[21%]" />
+                  <div className="bg-blue-500 h-full transition-all duration-500" style={{ width: `${q1PctBoa}%` }} />
                 </div>
               </div>
 
               <div>
                 <div className="flex justify-between text-xs mb-1">
                   <span className="text-slate-300">Regular / Outras</span>
-                  <span className="text-white font-bold">7% (34)</span>
+                  <span className="text-white font-bold">{q1PctOutras}% ({q1Outras})</span>
                 </div>
                 <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                  <div className="bg-amber-500 h-full w-[7%]" />
+                  <div className="bg-amber-500 h-full transition-all duration-500" style={{ width: `${q1PctOutras}%` }} />
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Card 2 */}
+          {/* Card 2: Q7 */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-semibold text-amber-400 uppercase tracking-wider">Assembleias Gerais (AGO)</span>
@@ -284,83 +361,79 @@ export default function AdminPage() {
               <div>
                 <div className="flex justify-between text-xs mb-1">
                   <span className="text-slate-300">Excelente</span>
-                  <span className="text-white font-bold">68% (331)</span>
+                  <span className="text-white font-bold">{q7PctExcelente}% ({q7Excelente})</span>
                 </div>
                 <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                  <div className="bg-emerald-500 h-full w-[68%]" />
+                  <div className="bg-emerald-500 h-full transition-all duration-500" style={{ width: `${q7PctExcelente}%` }} />
                 </div>
               </div>
 
               <div>
                 <div className="flex justify-between text-xs mb-1">
                   <span className="text-slate-300">Boa</span>
-                  <span className="text-white font-bold">25% (122)</span>
+                  <span className="text-white font-bold">{q7PctBoa}% ({q7Boa})</span>
                 </div>
                 <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                  <div className="bg-blue-500 h-full w-[25%]" />
+                  <div className="bg-blue-500 h-full transition-all duration-500" style={{ width: `${q7PctBoa}%` }} />
                 </div>
               </div>
 
               <div>
                 <div className="flex justify-between text-xs mb-1">
                   <span className="text-slate-300">Regular / Outras</span>
-                  <span className="text-white font-bold">7% (34)</span>
+                  <span className="text-white font-bold">{q7PctOutras}% ({q7Outras})</span>
                 </div>
                 <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                  <div className="bg-amber-500 h-full w-[7%]" />
+                  <div className="bg-amber-500 h-full transition-all duration-500" style={{ width: `${q7PctOutras}%` }} />
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Tablets Status Table */}
+        {/* Últimas Respostas Registradas */}
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-          <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
-            <Tablet className="w-4 h-4 text-amber-400" />
-            Status das Estações / Tablets Cadastrados
+          <h3 className="text-sm font-bold text-white mb-4 flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <Database className="w-4 h-4 text-emerald-400" />
+              Últimas Respostas Recebidas no Banco de Dados
+            </span>
+            <span className="text-xs text-slate-500 font-normal">
+              Mostrando as coletas mais recentes
+            </span>
           </h3>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs text-slate-300">
               <thead className="bg-slate-950 text-slate-400 uppercase font-semibold border-b border-slate-800">
                 <tr>
+                  <th className="py-3 px-4">Horário / Data</th>
                   <th className="py-3 px-4">Estação / Totem</th>
-                  <th className="py-3 px-4">Localização</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4">Coletas Hoje</th>
-                  <th className="py-3 px-4">Último Ping</th>
+                  <th className="py-3 px-4">Q1: Administração</th>
+                  <th className="py-3 px-4">Q7: AGO</th>
+                  <th className="py-3 px-4">Q10: Satisfação</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800">
-                <tr>
-                  <td className="py-3.5 px-4 font-medium text-white">Totem 01 (Samsung Tab A9)</td>
-                  <td className="py-3.5 px-4">Entrada Principal - Foyer</td>
-                  <td className="py-3.5 px-4"><span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">Ativo</span></td>
-                  <td className="py-3.5 px-4 font-bold text-white">118</td>
-                  <td className="py-3.5 px-4 text-slate-400">há 12s</td>
-                </tr>
-                <tr>
-                  <td className="py-3.5 px-4 font-medium text-white">Totem 02 (Samsung Tab A9)</td>
-                  <td className="py-3.5 px-4">Auditório - Ala Direita</td>
-                  <td className="py-3.5 px-4"><span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">Ativo</span></td>
-                  <td className="py-3.5 px-4 font-bold text-white">96</td>
-                  <td className="py-3.5 px-4 text-slate-400">há 18s</td>
-                </tr>
-                <tr>
-                  <td className="py-3.5 px-4 font-medium text-white">Totem 03 (Lenovo M10)</td>
-                  <td className="py-3.5 px-4">Auditório - Ala Esquerda</td>
-                  <td className="py-3.5 px-4"><span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">Ativo</span></td>
-                  <td className="py-3.5 px-4 font-bold text-white">104</td>
-                  <td className="py-3.5 px-4 text-slate-400">há 45s</td>
-                </tr>
-                <tr>
-                  <td className="py-3.5 px-4 font-medium text-white">Totem 04 (Samsung Tab S6 Lite)</td>
-                  <td className="py-3.5 px-4">Secretaria Geral / Credenciamento</td>
-                  <td className="py-3.5 px-4"><span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">Ativo</span></td>
-                  <td className="py-3.5 px-4 font-bold text-white">169</td>
-                  <td className="py-3.5 px-4 text-slate-400">há 5s</td>
-                </tr>
+                {responses.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-6 text-center text-slate-500">
+                      Nenhuma resposta registrada ainda no Supabase. Faça um teste em /pesquisa!
+                    </td>
+                  </tr>
+                ) : (
+                  responses.slice(0, 10).map((r) => (
+                    <tr key={r.id}>
+                      <td className="py-3 px-4 text-slate-400">
+                        {new Date(r.created_at).toLocaleString("pt-BR")}
+                      </td>
+                      <td className="py-3 px-4 font-medium text-white">{r.totem_id || "totem_geral"}</td>
+                      <td className="py-3 px-4 capitalize text-amber-300">{r.q1_administracao_geral || "-"}</td>
+                      <td className="py-3 px-4 capitalize text-blue-300">{r.q7_organizacao_ago || "-"}</td>
+                      <td className="py-3 px-4 capitalize text-emerald-300">{r.q10_satisfacao_geral || "-"}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

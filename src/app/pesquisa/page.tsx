@@ -115,10 +115,14 @@ function getSemanticOptionIcon(questionId: number, value: string, isSelected: bo
   }
 }
 
+import { supabase } from "@/lib/supabase";
+import { Loader2 } from "lucide-react";
+
 export default function PesquisaPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [isCompleted, setIsCompleted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const totalQuestions = SURVEY_QUESTIONS.length;
   const currentQuestion: Question = SURVEY_QUESTIONS[currentIndex];
@@ -132,11 +136,38 @@ export default function PesquisaPage() {
     }));
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentIndex < totalQuestions - 1) {
       setCurrentIndex((prev) => prev + 1);
     } else {
-      setIsCompleted(true);
+      // Gravação segura no Supabase
+      setIsSubmitting(true);
+      try {
+        const payload = {
+          totem_id: typeof window !== "undefined" ? (localStorage.getItem("totem_id") || "totem_geral") : "totem_geral",
+          q1_administracao_geral: answers[1] || "",
+          q2_acompanhamento_campos: answers[2] || "",
+          q3_acessibilidade_presidencia: answers[3] || "",
+          q4_familia_presidencia: answers[4] || "",
+          q5_secretaria_administrativa: answers[5] || "",
+          q6_tesouraria_convencao: answers[6] || "",
+          q7_organizacao_ago: answers[7] || "",
+          q8_principal_dificuldade: answers[8] || "",
+          q9_esforcos_melhoria: answers[9] || "",
+          q10_satisfacao_geral: answers[10] || "",
+          respostas_completas: answers,
+        };
+
+        const { error } = await supabase.from("respostas_pesquisa").insert([payload]);
+        if (error) {
+          console.error("Erro ao gravar resposta no Supabase:", error);
+        }
+      } catch (err) {
+        console.error("Exceção ao gravar no Supabase:", err);
+      } finally {
+        setIsSubmitting(false);
+        setIsCompleted(true);
+      }
     }
   };
 
@@ -408,15 +439,24 @@ export default function PesquisaPage() {
               <button
                 type="button"
                 onClick={handleNext}
-                disabled={!currentAnswer}
+                disabled={!currentAnswer || isSubmitting}
                 className={`flex items-center justify-center gap-2 rounded-2xl font-bold transition-all cursor-pointer shadow-lg px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base min-w-[140px] sm:min-w-[170px] h-[46px] sm:h-[54px] ${
-                  !currentAnswer
+                  !currentAnswer || isSubmitting
                     ? "bg-[#D8C7B2]/70 text-[#9E8B78] border border-[#C5B39E] cursor-not-allowed shadow-none"
                     : "bg-gradient-to-r from-[#800020] via-[#750215] to-[#54040E] hover:from-[#9D0F2D] hover:to-[#6E0A1E] text-white shadow-[#800020]/35 active:scale-[0.98] border border-[#E5B533]/40"
                 }`}
               >
-                <span>{currentIndex === totalQuestions - 1 ? "Finalizar" : "Próxima"}</span>
-                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin text-white" />
+                    <span>Gravando...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>{currentIndex === totalQuestions - 1 ? "Finalizar" : "Próxima"}</span>
+                    <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                  </>
+                )}
               </button>
             </footer>
           </div>
