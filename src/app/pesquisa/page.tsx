@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { SURVEY_QUESTIONS, Question } from "@/data/survey-questions";
 import { 
   ArrowLeft, 
@@ -229,36 +228,17 @@ export default function PesquisaPage() {
   const is5Options = optionCount === 5;
 
   return (
-    <main className="relative w-full min-h-screen bg-[#591013] flex flex-col items-center justify-start overflow-x-hidden select-none">
-      {/* 
-        Background oficial das perguntas COMIEADEPA:
-        Preserva a arte institucional sem deformar a imagem (object-contain no topo com fundo vinho #591013 harmonizado).
-      */}
-      <div className="absolute top-0 left-0 right-0 w-full h-[180px] sm:h-[220px] md:h-[250px] lg:h-[280px] pointer-events-none z-0 overflow-hidden flex justify-center">
-        <div className="relative w-full max-w-[1780px] h-full">
-          <Image
-            src="/img/bg_pergunta2.png"
-            alt="COMIEADEPA Pesquisa Institucional"
-            fill
-            priority
-            sizes="100vw"
-            className="object-contain object-top opacity-100"
-          />
-        </div>
-      </div>
-
-      {/* Espaçador superior correspondente ao cabeçalho da imagem */}
-      <div className="relative z-10 w-full h-[90px] xs:h-[105px] sm:h-[120px] md:h-[135px] lg:h-[145px] shrink-0 pointer-events-none" />
-
+    <main className="relative w-full min-h-screen bg-[#591013] flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 overflow-x-hidden select-none">
       {/* 
         CARD PRINCIPAL RESPONSIVO:
+        - Fundo sólido do container (#591013) substitui a imagem anterior.
         - Largura: min(1380px, calc(100% - 32px))
         - Altura: adaptável ao conteúdo sem overflow oculto forçado
         - Padding: responsivo (16px em mobile, 20px em tablet, 28px em desktop)
       */}
-      <div className="relative z-10 w-full flex justify-center px-4 sm:px-6 pb-6 sm:pb-8">
+      <div className="relative z-10 w-full flex justify-center py-2 sm:py-4">
         <section 
-          className="relative w-full bg-[#FFF9F0] border-[3px] sm:border-[4px] border-[#D8BC86] rounded-[24px] sm:rounded-[30px] shadow-[0_20px_45px_-8px_rgba(75,10,18,0.25)] p-4 sm:p-6 md:p-7 flex flex-col gap-y-4 sm:gap-y-5"
+          className="relative w-full bg-[#FFF9F0] border-[3px] sm:border-[4px] border-[#D8BC86] rounded-[24px] sm:rounded-[30px] shadow-[0_20px_45px_-8px_rgba(30,5,8,0.45)] p-4 sm:p-6 md:p-7 flex flex-col gap-y-4 sm:gap-y-5"
           style={{
             width: "min(1380px, calc(100% - 32px))",
             minHeight: "auto",
