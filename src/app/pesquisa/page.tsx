@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { SURVEY_QUESTIONS, Question } from "@/data/survey-questions";
 import { 
   ArrowLeft, 
@@ -119,10 +120,31 @@ import { supabase } from "@/lib/supabase";
 import { Loader2 } from "lucide-react";
 
 export default function PesquisaPage() {
+  const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [isCompleted, setIsCompleted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [countdown, setCountdown] = useState(10);
+
+  // Timer de 10 segundos para retornar à tela inicial automaticamente
+  useEffect(() => {
+    if (!isCompleted) return;
+
+    setCountdown(10);
+    const interval = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          router.push("/");
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isCompleted, router]);
 
   const totalQuestions = SURVEY_QUESTIONS.length;
   const currentQuestion: Question = SURVEY_QUESTIONS[currentIndex];
@@ -185,40 +207,42 @@ export default function PesquisaPage() {
 
   if (isCompleted) {
     return (
-      <main className="relative w-full min-h-screen bg-[#591013] flex items-center justify-center p-4 sm:p-6 select-none overflow-y-auto">
-        <div className="relative w-full max-w-[1380px] bg-[#FFF9F0] border-[4px] border-[#D8BC86] rounded-[24px] sm:rounded-[30px] p-6 sm:p-10 md:p-12 shadow-2xl text-center my-auto">
+      <main className="relative w-full min-h-screen min-h-[100dvh] bg-[#591013] flex items-center justify-center p-4 sm:p-6 select-none overflow-y-auto">
+        <div className="relative w-full max-w-[560px] bg-[#FFF9F0] border-[3px] sm:border-[4px] border-[#D8BC86] rounded-[24px] sm:rounded-[30px] p-6 sm:p-10 shadow-2xl text-center my-auto">
+          {/* Ícone de confirmação */}
           <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#800020] text-white border-2 border-[#C79C3B] flex items-center justify-center mx-auto mb-5 shadow-md">
             <CheckCircle2 className="w-10 h-10 sm:w-12 sm:h-12 text-[#FFD666]" />
           </div>
 
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#800020] mb-3">
+          {/* Título de agradecimento */}
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#800020] mb-3">
             Obrigado pela sua contribuição!
           </h1>
 
-          <p className="text-[#5C3D42] text-sm sm:text-base md:text-lg mb-6 sm:mb-8 leading-relaxed max-w-2xl mx-auto">
+          {/* Mensagem institucional */}
+          <p className="text-[#5C3D42] text-sm sm:text-base mb-6 leading-relaxed max-w-lg mx-auto">
             Sua avaliação foi registrada de forma totalmente anônima e confidencial. A liderança da COMIEADEPA agradece sua valiosa participação na AGO 2026.
           </p>
 
-          <div className="bg-[#FAF0E1] border border-[#E7CE9E] rounded-2xl p-3.5 sm:p-4 text-xs sm:text-sm text-[#800020] mb-6 sm:mb-8 max-w-lg mx-auto flex items-center justify-center gap-2">
+          {/* Pílula de segurança */}
+          <div className="bg-[#FAF0E1] border border-[#E7CE9E] rounded-2xl p-3 sm:p-3.5 text-xs sm:text-sm text-[#800020] mb-6 max-w-md mx-auto flex items-center justify-center gap-2">
             <ShieldCheck className="w-5 h-5 text-[#800020] shrink-0" />
             <span className="font-semibold">Sessão finalizada com segurança. Nenhum dado pessoal foi mantido.</span>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3.5 justify-center">
+          {/* Botão único OK e timer regressivo */}
+          <div className="flex flex-col items-center justify-center gap-3 w-full">
             <Link
               href="/"
-              className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-[#800020] to-[#590410] hover:from-[#9D0F2D] hover:to-[#6E0A1E] text-white font-bold transition-all shadow-lg shadow-[#800020]/25 text-sm sm:text-base"
+              className="w-full max-w-[280px] inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-[#800020] via-[#750215] to-[#54040E] hover:from-[#9D0F2D] hover:to-[#6E0A1E] text-white font-extrabold tracking-wider text-lg transition-all shadow-xl shadow-[#800020]/35 border border-[#E5B533]/40 cursor-pointer active:scale-[0.98]"
             >
-              <Home className="w-5 h-5" />
-              <span>Voltar ao Totem</span>
+              <Check className="w-6 h-6 stroke-[3]" />
+              <span>OK</span>
             </Link>
-            <button
-              onClick={handleReset}
-              className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl bg-[#FFF9F0] hover:bg-[#F5E8D3] text-[#800020] font-bold border-2 border-[#800020]/30 transition-colors cursor-pointer text-sm sm:text-base"
-            >
-              <RotateCcw className="w-5 h-5" />
-              <span>Nova Resposta</span>
-            </button>
+
+            <span className="text-xs sm:text-sm text-[#8C6D47] font-semibold">
+              Retornando à tela inicial em {countdown}s...
+            </span>
           </div>
         </div>
       </main>

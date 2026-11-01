@@ -50,7 +50,7 @@ export const SURVEY_QUESTIONS: Question[] = [
       { label: "Muito positiva", value: "muito_positiva" },
       { label: "Positiva", value: "positiva" },
       { label: "Regular", value: "regular" },
-      { label: "Ruim", value: "ruim" },
+      { label: "Insatisfatória", value: "insatisfatoria" },
       { label: "Não tenho condições de avaliar", value: "nao_tenho_condicoes" },
     ],
   },
